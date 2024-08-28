@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 import "./Book.css";
 
 export default function Book({ closeModal, handlePaymentSubmit, bookedSeats }) {
-
   const navigate = useNavigate();
 
   const notifySuccess = () => {
@@ -22,6 +21,7 @@ export default function Book({ closeModal, handlePaymentSubmit, bookedSeats }) {
 
   const handlePaymentClick = () => {
     notifySuccess();
+    console.log(bookedSeats);
     navigate("/", { state: { selectedSeats: bookedSeats } });
   };
 
