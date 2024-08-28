@@ -1,0 +1,84 @@
+.book-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  color: white;
+}
+
+.box {
+  background-color: #fff;
+  padding: 40px;
+  width: 400px;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.p {
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #666;
+}
+
+.seat-list {
+  margin-bottom: 20px;
+  display: flex;
+  margin-left: 1px;
+  align-items: center;
+  gap: 10px;
+}
+
+.booked-seat {
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f4f4f4;
+  color: #333;
+  font-size: 16px;
+}
+
+.payment-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.payment-btn:hover {
+  background: #218838;
+  transform: scale(1.05);
+}
+
+.cancel-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  margin-left: 20px;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: #c82333;
+  transform: scale(1.05);
+}
