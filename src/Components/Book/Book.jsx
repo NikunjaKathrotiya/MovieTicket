@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "./Book.css";
 
@@ -21,7 +21,6 @@ export default function Book({ closeModal, handlePaymentSubmit, bookedSeats }) {
 
   const handlePaymentClick = () => {
     notifySuccess();
-    console.log(bookedSeats);
     navigate("/", { state: { selectedSeats: bookedSeats } });
   };
 

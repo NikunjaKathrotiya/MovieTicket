@@ -1,82 +1,94 @@
-.seatscreen-container {
-  text-align: center;
-  padding: 20px;
-  background-color: #f7f7f7;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.seat-category {
+  display: flex;
+  justify-content: space-around;
+  /* margin-bottom: 10px; */
 }
 
-h2 {
-  margin-bottom: 20px;
-  color: #333;
-  font-family: 'Arial', sans-serif;
+.category {
+  padding: 5px 5px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.seat-heading {
+  text-align: center;
+  color: rgba(255, 0, 0, 0.692);
 }
 
 .seat-grid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
+  text-align: center;
 }
 
-.seat-row {
-  display: flex;
-  margin-bottom: 5px;
+.category.gold {
+  background-color: gold;
+  color: rgba(0, 0, 0, 0.767);
+}
+
+.category.silver {
+  background-color: silver;
+  color: rgba(0, 0, 0, 0.767);
+}
+
+.category.platinum {
+  background-color: platinum;
+  color: rgba(0, 0, 0, 0.767);
 }
 
 .seat {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #00aaff;
-  border-radius: 4px;
+  width: 25px;
+  height: 25px;
+  text-align: center;
+  line-height: 30px;
   margin: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  border-radius: 5px;
+  display: inline-block;
+  
+
+  
+  font-size: small;
+  border: 1px solid green; 
+  color:green;
 }
 
 .seat.available {
-  background-color: #e0e0e0;
+color:  green;
+  border-color:  green; 
 }
 
 .seat.selected {
-  background-color: #00aaff;
-  color: white;
-  transform: scale(1.1);
+  background-color: blue;
+  color:green;
+  border-color: green; 
 }
 
 .seat.booked {
-  background-color: #ffa500;
-  color: rgb(180, 21, 21);
+  background-color: rgba(255, 255, 0, 0.952);
   cursor: not-allowed;
-}
-
-.seat-info {
-  margin: 20px 0;
-  font-family: 'Arial', sans-serif;
-  color: #666;
-}
-
-.seat-info p {
-  margin: 5px 0;
+  border-color: goldenrod; 
 }
 
 .book-btn {
-  background-color: #00aaff;
-  padding: 10px 20px;
-  width: 120px;
-  border-radius: 5px;
-  border: none;
+  background-color: rgb(153, 2, 27); 
   color: white;
+  border: none;
+  border-radius: 5px; 
+  padding: 10px 20px; 
   font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  cursor: pointer; 
+  transition: background-color 0.3s, transform 0.2s;
+  margin-top: 10px;
 }
 
 .book-btn:hover {
-  background-color: #0094cc;
-  transform: scale(1.05);
+  background-color: rgb(120, 1, 18);
+}
+
+.book-btn:active {
+  transform: scale(0.98); 
+}
+
+.book-btn:disabled {
+  background-color: grey; 
+  cursor: not-allowed; 
+  opacity: 0.6; 
 }
