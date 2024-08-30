@@ -3,23 +3,24 @@ import { useNavigate } from "react-router-dom";
 import "../Seatscreen/Seatscreen.css";
 import Book from "../Book/Book";
 
+// Define rows and row categories
 const rows = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const seatsPerRow = 10;
-
-const generateSeatGrid = () => {
-  return rows.map((row) =>
-    Array.from({ length: seatsPerRow }, (_, i) => `${row}${i + 1}`)
-  );
+const rowCategories = {
+  gold: ["A", "B"],
+  silver: ["C", "D"],
+  platinum: ["E", "F", "G", "H"],
 };
 
-const getRowIndex = (seat) => rows.indexOf(seat[0]);
-const getSeatNumber = (seat) => parseInt(seat.slice(1), 10);
+const seatsPerRow = 10;
+
+const getRowIndex = (seat) => rows.indexOf(seat[0]); //give index of row based on seat label
+const getSeatNumber = (seat) => parseInt(seat.slice(1), 10); // give only numeric number means seat number 1,2,3 up to 10
 
 const getContiguousSeats = (startSeat, count) => {
   const rowIndex = getRowIndex(startSeat);
   const seatNumber = getSeatNumber(startSeat);
-  const seats = [];
 
+  const seats = [];
   for (let i = 0; i < count; i++) {
     const seatNumInRow = seatNumber + i;
     if (seatNumInRow <= seatsPerRow) {
@@ -30,31 +31,69 @@ const getContiguousSeats = (startSeat, count) => {
   }
   return seats;
 };
+//this fun give continue selction from selected seat
+ const getCategory = (row) => {
+  for (const [category, rowsList] of Object.entries(rowCategories)) {
+    if (rowsList.includes(row)) return category;
+  }
+  return "unknown";
+};
+//determine category of given row
 
 export default function Seatscreen() {
-  const [seatGrid] = useState(generateSeatGrid());
-  const [selectedSeats, setSelectedSeats] = useState([]);
-  const [maxSeats, setMaxSeats] = useState(1);
-  const [bookedSeats, setBookedSeats] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const navigate = useNavigate();
+
+  const [seatsByCategory, setSeatsByCategory] = useState({
+    gold: {},
+    silver: {},
+    platinum: {},
+  });
+//holds the seat data orgainzed by category
+
+  const [selectedSeats, setSelectedSeats] = useState([]);//track seat selected by user.
+  const [maxSeats, setMaxSeats] = useState(1);//give maximum number of seat selected once
+  const [bookedSeats, setBookedSeats] = useState([]); // keep record of booked seats.
+  const [isModalOpen, setIsModalOpen] = useState(false); // keep visibilty of model
+  const navigate = useNavigate(); // used for navigation
 
   useEffect(() => {
+    fetch("https://66cefbaf901aab24842067f7.mockapi.io/seats/seats")
+      .then((response) => response.json())
+      .then((data) => {
+        const categorizedSeats = {
+          gold: {},
+          silver: {},
+          platinum: {},
+        };
+
+        // Organize seat data by category and row
+        data.forEach((category) => {
+          Object.entries(category.seats).forEach(([row, seats]) => {
+            if (!categorizedSeats[category.category][row]) {
+              categorizedSeats[category.category][row] = [];
+            }
+            categorizedSeats[category.category][row].push(
+              ...seats.map((seat) => ({
+                ...seat,
+                color: seat.color || "lightgrey",
+              }))
+            );
+          });
+        });
+
+        setSeatsByCategory(categorizedSeats);
+      })
+      .catch((error) => console.error("Error fetching seat data:", error));
+
     const queryParams = new URLSearchParams(window.location.search);
     const seats = parseInt(queryParams.get("seats") || "1", 10);
-
     setMaxSeats(seats);
-    const storedBookedSeats = JSON.parse(
-      localStorage.getItem("bookedSeats") || "[]"
-    );
-    const storedSelectedSeats = JSON.parse(
-      localStorage.getItem("selectedSeats") || "[]"
-    );
-    const validSelectedSeats = storedSelectedSeats.filter(
-      (seat) => !storedBookedSeats.includes(seat)
-    );
-console.log(validSelectedSeats);
-    setSelectedSeats(validSelectedSeats);
+
+    const storedBookedSeats =
+      JSON.parse(localStorage.getItem("bookedSeats")) || [];
+ 
+      const storedSelectedSeats =JSON.parse(localStorage.getItem("selectedSeats")) || [];
+
+    setSelectedSeats(storedSelectedSeats);
     setBookedSeats(storedBookedSeats);
   }, []);
 
@@ -67,20 +106,31 @@ console.log(validSelectedSeats);
   }, [bookedSeats]);
 
   const handleSeatClick = (seat) => {
-    if (bookedSeats.includes(seat)) return;
+    if (bookedSeats.includes(seat.number)) {
+      return;
+    }
 
     if (selectedSeats.length >= maxSeats) {
-      alert("You have already selected the maximum number of seats.");
+      const isAlreadySelected = selectedSeats.includes(seat.number);
+      if (isAlreadySelected) {
+        setSelectedSeats([]);
+      } 
+      else
+       {
+        setSelectedSeats([seat.number]);
+      }
       return;
     }
 
     const contiguousSeats = getContiguousSeats(
-      seat,
+      seat.number,
       maxSeats - selectedSeats.length
     );
+
     setSelectedSeats((prevSelectedSeats) => {
       const newSelectedSeats = new Set(prevSelectedSeats);
-      const shouldSelect = !newSelectedSeats.has(seat);
+      const shouldSelect = !newSelectedSeats.has(seat.number);
+
       contiguousSeats.forEach((s) => {
         if (shouldSelect) {
           newSelectedSeats.add(s);
@@ -88,6 +138,7 @@ console.log(validSelectedSeats);
           newSelectedSeats.delete(s);
         }
       });
+
       return Array.from(newSelectedSeats).slice(0, maxSeats);
     });
   };
@@ -96,6 +147,7 @@ console.log(validSelectedSeats);
     e.preventDefault();
     if (selectedSeats.length === 0) return;
 
+    // Add new selected seats to the booked seats list
     const updatedBookedSeats = [...new Set([...bookedSeats, ...selectedSeats])];
     localStorage.setItem("bookedSeats", JSON.stringify(updatedBookedSeats));
     setBookedSeats(updatedBookedSeats);
@@ -108,43 +160,54 @@ console.log(validSelectedSeats);
   };
 
   return (
-    <div className="seatscreen-container">
-      <h2>Select Your Seats</h2>
-      <div className="seat-grid">
-        {seatGrid.map((row, rowIndex) => (
-          <div key={rowIndex} className="seat-row">
-            {row.map((seat) => (
-              <div
-                key={seat}
-                className={`seat ${
-                  selectedSeats.includes(seat) ? "selected" : ""
-                } ${bookedSeats.includes(seat) ? "booked" : ""}`}
-                onClick={() => handleSeatClick(seat)}
-                style={{
-                  cursor: bookedSeats.includes(seat)
-                    ? "not-allowed"
-                    : "pointer",
-                }}
-              >
-                {seat}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-      {selectedSeats.length === maxSeats && (
-        <button className="book-btn" onClick={handleBookClick}>
-          Book Now
-        </button>
-      )}
+    <>
+      <h1 className="seat-heading">Select Your Seat</h1>
+      <div className="seatscreen-container">
+        <div className="seat-grid">
+          {Object.entries(seatsByCategory).map(([category, rowsObj]) => (
+            <div key={category} className="seat-category-section">
+              <h2>{category.charAt(0).toUpperCase() + category.slice(1)}</h2>
+              {Object.entries(rowsObj).map(([row, seats]) => (
+                <div key={row} className="seat-row">
+                  {seats.map((seat) => (
+                    <div
+                      key={seat.number}
+                      className={`seat ${
+                        bookedSeats.includes(seat.number)
+                          ? "booked"
+                          : seat.status
+                      } ${
+                        selectedSeats.includes(seat.number) ? "selected" : ""
+                      } ${seat.category ? seat.category : ""}`}
+                      onClick={() => handleSeatClick(seat)}
+                      style={{
+                        cursor: bookedSeats.includes(seat.number)
+                          ? "not-allowed"
+                          : "pointer",
+                      }}
+                    >
+                      {seat.number}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
 
-      {isModalOpen && (
-        <Book
-          closeModal={closeModal}
-          handlePaymentSubmit={() => {}}
-          bookedSeats={bookedSeats}
-        />
-      )}
-    </div>
+          {selectedSeats.length === maxSeats && (
+            <button className="book-btn" onClick={handleBookClick}>
+              Book Now
+            </button>
+          )}
+          {isModalOpen && (
+            <Book
+              closeModal={closeModal}
+              handlePaymentSubmit={() => {}}
+              bookedSeats={bookedSeats}
+            />
+          )}
+        </div>
+      </div>
+    </>
   );
 }
