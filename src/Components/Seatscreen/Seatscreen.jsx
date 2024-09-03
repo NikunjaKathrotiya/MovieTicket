@@ -3,19 +3,11 @@ import { useNavigate } from "react-router-dom";
 import "../Seatscreen/Seatscreen.css";
 import Book from "../Book/Book";
 
-// Define rows and row categories
 const rows = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const rowCategories = {
-  gold: ["A", "B"],
-  silver: ["C", "D"],
-  platinum: ["E", "F", "G", "H"],
-};
-
 const seatsPerRow = 10;
 
-const getRowIndex = (seat) => rows.indexOf(seat[0]); //give index of row based on seat label
-const getSeatNumber = (seat) => parseInt(seat.slice(1), 10); // give only numeric number means seat number 1,2,3 up to 10
-
+const getRowIndex = (seat) => rows.indexOf(seat[0]);
+const getSeatNumber = (seat) => parseInt(seat.slice(1), 10);
 const getContiguousSeats = (startSeat, count) => {
   const rowIndex = getRowIndex(startSeat);
   const seatNumber = getSeatNumber(startSeat);
@@ -31,47 +23,37 @@ const getContiguousSeats = (startSeat, count) => {
   }
   return seats;
 };
-//this fun give continue selction from selected seat
- const getCategory = (row) => {
-  for (const [category, rowsList] of Object.entries(rowCategories)) {
-    if (rowsList.includes(row)) return category;
-  }
-  return "unknown";
-};
-//determine category of given row
 
 export default function Seatscreen() {
-
   const [seatsByCategory, setSeatsByCategory] = useState({
-    gold: {},
-    silver: {},
-    platinum: {},
+    gold: { seats: {}, price: 0 },
+    silver: { seats: {}, price: 0 },
+    platinum: { seats: {}, price: 0 },
   });
-//holds the seat data orgainzed by category
-
-  const [selectedSeats, setSelectedSeats] = useState([]);//track seat selected by user.
-  const [maxSeats, setMaxSeats] = useState(1);//give maximum number of seat selected once
-  const [bookedSeats, setBookedSeats] = useState([]); // keep record of booked seats.
-  const [isModalOpen, setIsModalOpen] = useState(false); // keep visibilty of model
-  const navigate = useNavigate(); // used for navigation
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [maxSeats, setMaxSeats] = useState(1);
+  const [bookedSeats, setBookedSeats] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("https://66cefbaf901aab24842067f7.mockapi.io/seats/seats")
+  
+    fetch("https://66cefbaf901aab24842067f7.mockapi.io/seats/seats")//conver json format to js object format
       .then((response) => response.json())
       .then((data) => {
         const categorizedSeats = {
-          gold: {},
-          silver: {},
-          platinum: {},
+          gold: { seats: {}, price: 0 },
+          silver: { seats: {}, price: 0 },
+          platinum: { seats: {}, price: 0 },
         };
 
-        // Organize seat data by category and row
         data.forEach((category) => {
+          categorizedSeats[category.category].price = category.price;
           Object.entries(category.seats).forEach(([row, seats]) => {
-            if (!categorizedSeats[category.category][row]) {
-              categorizedSeats[category.category][row] = [];
+            if (!categorizedSeats[category.category].seats[row]) {
+              categorizedSeats[category.category].seats[row] = [];
             }
-            categorizedSeats[category.category][row].push(
+            categorizedSeats[category.category].seats[row].push(
               ...seats.map((seat) => ({
                 ...seat,
                 color: seat.color || "lightgrey",
@@ -79,7 +61,7 @@ export default function Seatscreen() {
             );
           });
         });
-
+        
         setSeatsByCategory(categorizedSeats);
       })
       .catch((error) => console.error("Error fetching seat data:", error));
@@ -90,11 +72,11 @@ export default function Seatscreen() {
 
     const storedBookedSeats =
       JSON.parse(localStorage.getItem("bookedSeats")) || [];
- 
-      const storedSelectedSeats =JSON.parse(localStorage.getItem("selectedSeats")) || [];
+    const storedSelectedSeats =
+      JSON.parse(localStorage.getItem("selectedSeats")) || [];
 
-    setSelectedSeats(storedSelectedSeats);
     setBookedSeats(storedBookedSeats);
+    setSelectedSeats(storedSelectedSeats);
   }, []);
 
   useEffect(() => {
@@ -114,13 +96,19 @@ export default function Seatscreen() {
       const isAlreadySelected = selectedSeats.includes(seat.number);
       if (isAlreadySelected) {
         setSelectedSeats([]);
-      } 
-      else
-       {
+      } else {
         setSelectedSeats([seat.number]);
       }
       return;
     }
+    const bookedSeatsSet = new Set(bookedSeats);
+    if (bookedSeatsSet.has(selectedSeats)) {
+      alert(
+        "The selected number of seats is already booked. Please choose a different number."
+      );
+      return;
+    }
+    console.log(bookedSeatsSet);
 
     const contiguousSeats = getContiguousSeats(
       seat.number,
@@ -147,7 +135,6 @@ export default function Seatscreen() {
     e.preventDefault();
     if (selectedSeats.length === 0) return;
 
-    // Add new selected seats to the booked seats list
     const updatedBookedSeats = [...new Set([...bookedSeats, ...selectedSeats])];
     localStorage.setItem("bookedSeats", JSON.stringify(updatedBookedSeats));
     setBookedSeats(updatedBookedSeats);
@@ -159,17 +146,21 @@ export default function Seatscreen() {
     navigate("/Seatscreen", { state: { selectedSeats: bookedSeats } });
   };
 
+  const category = "gold"; 
+  const pricePerSeat = seatsByCategory[category]?.price || 0;
+  const totalPrice = selectedSeats.length * pricePerSeat;
+
   return (
     <>
       <h1 className="seat-heading">Select Your Seat</h1>
       <div className="seatscreen-container">
         <div className="seat-grid">
-          {Object.entries(seatsByCategory).map(([category, rowsObj]) => (
+          {Object.entries(seatsByCategory).map(([category, { seats, price }]) => (
             <div key={category} className="seat-category-section">
               <h2>{category.charAt(0).toUpperCase() + category.slice(1)}</h2>
-              {Object.entries(rowsObj).map(([row, seats]) => (
+              {Object.entries(seats).map(([row, seatsList]) => (
                 <div key={row} className="seat-row">
-                  {seats.map((seat) => (
+                  {seatsList.map((seat) => (
                     <div
                       key={seat.number}
                       className={`seat ${
@@ -191,6 +182,7 @@ export default function Seatscreen() {
                   ))}
                 </div>
               ))}
+              <p>Price per seat: ${price}</p>
             </div>
           ))}
 
@@ -206,6 +198,9 @@ export default function Seatscreen() {
               bookedSeats={bookedSeats}
             />
           )}
+          <label>
+            You have selected {selectedSeats.length} seats for a total price of ${totalPrice}
+          </label>
         </div>
       </div>
     </>

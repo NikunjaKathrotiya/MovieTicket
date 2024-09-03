@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Component } from "react";
 import "../Ticketbox/Ticketbox.css";
 import logo2 from "../../assets/seating.jpg";
 import { useNavigate } from "react-router-dom";
@@ -9,8 +9,9 @@ export default function TicketBox() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedBookedSeats = JSON.parse(localStorage.getItem("bookedSeats")) || [];
-    setBookedSeats(storedBookedSeats);
+    const storedBookedSeats =
+      JSON.parse(localStorage.getItem("bookedSeats")) || [];
+         setBookedSeats(storedBookedSeats);
   }, []);
 
   const handleSelectSeats = () => {
@@ -19,13 +20,16 @@ export default function TicketBox() {
       return;
     }
 
-    const bookedSeatsSet = new Set(bookedSeats);
-
-    if (bookedSeatsSet.has(selectedSeats)) {
-      alert("The selected number of seats is already booked. Please choose a different number.");
+    if (bookedSeats.includes(selectedSeats)) {
+      alert(
+        "The selected number of seats is already booked. Please choose a different number."
+      );
       return;
     }
-  
+
+    const updatedBookedSeats = [...bookedSeats, selectedSeats];
+    localStorage.setItem("bookedSeats", JSON.stringify(updatedBookedSeats));
+    setBookedSeats(updatedBookedSeats);
     localStorage.setItem("selectedSeatsCount", JSON.stringify(selectedSeats));
     navigate(`/seatscreen?seats=${selectedSeats}`);
   };
@@ -42,13 +46,14 @@ export default function TicketBox() {
         {number.map((num) => (
           <button
             key={num}
-            className={`number-btn ${bookedSeats.includes(num) ? "booked" : ""} ${selectedSeats === num ? "active" : ""}`}
+            className={`number-btn ${
+              bookedSeats.includes(num) ? "booked" : ""
+            } ${selectedSeats === num ? "active" : ""}`}
             onClick={() => setSelectedSeats(num)}
             disabled={bookedSeats.includes(num)}
           >
             {num}
           </button>
-       
         ))}
       </div>
       <div className="skims">
