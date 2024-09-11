@@ -54,6 +54,10 @@
 color:  green;
   border-color:  green; 
 }
+.booked {
+  background-color: yellow;
+  cursor: not-allowed;
+}
 
 .seat.selected {
   background-color: blue;
